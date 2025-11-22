@@ -212,7 +212,7 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
 
                     {/* Bottom Info */}
                     <div className="mt-auto">
-                        <h3 className="text-white font-black text-xl md:text-2xl leading-none drop-shadow-lg text-center mb-3 uppercase italic">
+                        <h3 className="text-white font-black text-lg md:text-xl leading-none drop-shadow-lg text-center mb-3 uppercase italic">
                             {match.title}
                         </h3>
                         
@@ -251,7 +251,7 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
                     : 'bg-[var(--bg-card)] border-[var(--border-color)] hover:border-[var(--text-muted)]'
             }`}
         >
-            <div className="p-3 sm:p-4 flex flex-col h-full gap-3">
+            <div className="p-3 flex flex-col h-full gap-3">
                 {/* Header */}
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                     <div className="flex items-center gap-2">
@@ -277,39 +277,39 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
                             {/* Home Team */}
                             <div className="flex flex-col items-center text-center gap-2 group-hover:scale-[1.02] transition-transform">
                                 <TeamLogo name={match.teams.home.name} logo={match.teams.home.logo} className="w-12 h-12 text-base shadow-lg" />
-                                <span className={`text-sm font-bold leading-tight flex items-center justify-center min-h-[40px] w-full break-words ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
+                                <span className={`text-xs font-bold leading-tight flex items-center justify-center min-h-[32px] w-full break-words ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
                                     {match.teams.home.name}
                                 </span>
                             </div>
                             
                             {/* VS Marker */}
                             <div className="flex flex-col pt-4 items-center justify-center">
-                                <span className="text-[var(--text-muted)] font-black text-sm italic opacity-30">VS</span>
+                                <span className="text-[var(--text-muted)] font-black text-xs italic opacity-30">VS</span>
                             </div>
 
                             {/* Away Team */}
                             <div className="flex flex-col items-center text-center gap-2 group-hover:scale-[1.02] transition-transform">
                                 <TeamLogo name={match.teams.away.name} logo={match.teams.away.logo} className="w-12 h-12 text-base shadow-lg" />
-                                <span className={`text-sm font-bold leading-tight flex items-center justify-center min-h-[40px] w-full break-words ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
+                                <span className={`text-xs font-bold leading-tight flex items-center justify-center min-h-[32px] w-full break-words ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
                                     {match.teams.away.name}
                                 </span>
                             </div>
                         </div>
                     ) : (
-                        <h3 className="text-base font-bold text-[var(--text-main)] text-center w-full py-4 px-2 leading-relaxed">
+                        <h3 className="text-sm font-bold text-[var(--text-main)] text-center w-full py-4 px-2 leading-relaxed">
                             {match.title}
                         </h3>
                     )}
                 </div>
 
                 {/* Footer Action */}
-                <div className="pt-3 border-t border-[var(--border-color)] flex items-center justify-between mt-auto">
+                <div className="pt-2 border-t border-[var(--border-color)] flex items-center justify-between mt-auto">
                      <span className="text-[10px] text-[var(--text-muted)] font-mono flex items-center gap-1">
                         <RadioReceiver className="w-3 h-3" /> {match.sources.length} Stream{match.sources.length !== 1 ? 's' : ''}
                      </span>
                      
                      {isLive ? (
-                         <button className="bg-[var(--text-main)] text-[var(--bg-main)] px-3 py-1 rounded text-xs font-bold flex items-center gap-1 hover:opacity-90 transition-opacity shadow-md">
+                         <button className="bg-[var(--text-main)] text-[var(--bg-main)] px-3 py-1 rounded text-[10px] font-bold flex items-center gap-1 hover:opacity-90 transition-opacity shadow-md">
                             <PlayCircle className="w-3 h-3" /> Watch
                          </button>
                      ) : (
@@ -338,7 +338,7 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
                <Trophy className="w-5 h-5 text-white" />
             </div>
             <div>
-                <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight uppercase italic leading-none">Live Sports</h2>
+                <h2 className="text-xl font-black text-[var(--text-main)] tracking-tight uppercase italic leading-none">Live Sports</h2>
                 <p className="text-[10px] text-[var(--text-muted)] font-medium">Real-time events dashboard</p>
             </div>
         </div>
@@ -346,12 +346,12 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
         {/* Filter Pills */}
         <div className="w-full md:w-auto overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
+                <Filter className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                 {categories.map(cat => (
                     <button
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-colors ${
+                        className={`px-3 py-1 rounded-md text-[10px] font-bold whitespace-nowrap transition-colors ${
                             activeCategory === cat 
                             ? 'bg-[var(--text-main)] text-[var(--bg-main)]' 
                             : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-main)]'
@@ -380,10 +380,10 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
             {/* Live Section */}
             {liveMatches.length > 0 && (
                 <div>
-                    <div className="flex items-center gap-2 mb-4 px-1">
+                    <div className="flex items-center gap-2 mb-3 px-1">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                        <h3 className="text-lg font-bold text-[var(--text-main)]">Live Now</h3>
-                        <span className="text-xs font-bold text-[var(--text-muted)] bg-[var(--bg-card)] px-2 py-0.5 rounded-full border border-[var(--border-color)]">
+                        <h3 className="text-base font-bold text-[var(--text-main)]">Live Now</h3>
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] bg-[var(--bg-card)] px-2 py-0.5 rounded-full border border-[var(--border-color)]">
                             {liveMatches.length}
                         </span>
                     </div>
@@ -398,10 +398,10 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
             {/* Upcoming Section */}
             {upcomingMatches.length > 0 && (
                 <div>
-                     <div className="flex items-center gap-2 mb-4 px-1 mt-8 pt-8 border-t border-[var(--border-color)]">
+                     <div className="flex items-center gap-2 mb-3 px-1 mt-8 pt-6 border-t border-[var(--border-color)]">
                         <Calendar className="w-4 h-4 text-[var(--text-muted)]" />
-                        <h3 className="text-lg font-bold text-[var(--text-main)]">Upcoming</h3>
-                        <span className="text-xs font-bold text-[var(--text-muted)] bg-[var(--bg-card)] px-2 py-0.5 rounded-full border border-[var(--border-color)]">
+                        <h3 className="text-base font-bold text-[var(--text-main)]">Upcoming</h3>
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] bg-[var(--bg-card)] px-2 py-0.5 rounded-full border border-[var(--border-color)]">
                             {upcomingMatches.length}
                         </span>
                     </div>
