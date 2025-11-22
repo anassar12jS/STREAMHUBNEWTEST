@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="referrer" content="origin" />
+    <meta name="description" content="StreamHub - Free movie and TV show discovery platform." />
+    <meta name="keywords" content="movies, tv shows, streaming, torrentio, tmdb" />
+    <meta name="theme-color" content="#0f0f0f" />
+    <meta property="og:title" content="StreamHub" />
+    <meta property="og:description" content="Discover and watch your favorite content." />
+    <meta property="og:type" content="website" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4221/4221484.png" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="StreamHub" />
+
+    <title>StreamHub - Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary-color: 147, 51, 234; /* Default Purple */
+        
+        /* Dark Mode Variables (Default) */
+        --bg-main: #0f0f0f;
+        --bg-card: #161616;
+        --bg-hover: #222222;
+        --bg-input: #1a1a1a;
+        --text-main: #ffffff;
+        --text-muted: #9ca3af; /* gray-400 */
+        --border-color: rgba(255, 255, 255, 0.1);
+        --shadow-color: rgba(0, 0, 0, 0.5);
+        --skeleton-start: #222222;
+        --skeleton-end: #333333;
+      }
+
+      :root[data-theme="light"] {
+        /* Light Mode Variables */
+        --bg-main: #f3f4f6; /* gray-100 */
+        --bg-card: #ffffff;
+        --bg-hover: #e5e7eb; /* gray-200 */
+        --bg-input: #ffffff;
+        --text-main: #111827; /* gray-900 */
+        --text-muted: #4b5563; /* gray-600 */
+        --border-color: rgba(0, 0, 0, 0.1);
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --skeleton-start: #e5e7eb;
+        --skeleton-end: #f3f4f6;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+      
+      /* GLOBAL FANCY SCROLLBAR */
+      ::-webkit-scrollbar {
+        width: 10px;   /* Vertical scrollbar width */
+        height: 10px;  /* Horizontal scrollbar height */
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: var(--bg-main);
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg-hover); 
+        border-radius: 5px;
+        border: 2px solid var(--bg-main); /* Creates padding effect */
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgb(var(--primary-color)); /* Theme color hover state */
+      }
+
+      /* Custom class for specific containers if needed overrides */
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: var(--bg-hover) var(--bg-main);
+      }
+
+      /* Animation Utilities */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fade-in-up {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out forwards;
+      }
+
+      /* Shimmer Loading Animation */
+      @keyframes shimmer {
+        0% {
+          background-position: -1000px 0;
+        }
+        100% {
+          background-position: 1000px 0;
+        }
+      }
+
+      .skeleton-loader {
+        animation: shimmer 2s infinite linear;
+        background: linear-gradient(to right, var(--skeleton-start) 4%, var(--skeleton-end) 25%, var(--skeleton-start) 36%);
+        background-size: 1000px 100%;
+      }
+
+      .delay-100 { animation-delay: 100ms; }
+      .delay-200 { animation-delay: 200ms; }
+      .delay-300 { animation-delay: 300ms; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "hls.js": "https://aistudiocdn.com/hls.js@^1.6.15"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
+    </script>
+  </body>
+</html>

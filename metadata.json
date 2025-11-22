@@ -1,0 +1,5 @@
+{
+  "name": "StreamHub - Web Stremio Clone",
+  "description": "A movie and TV show discovery platform powered by TMDB with Torrentio addon integration for stream searching.",
+  "requestFramePermissions": []
+}
