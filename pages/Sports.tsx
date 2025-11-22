@@ -24,7 +24,7 @@ const TeamLogo: React.FC<{ name: string, logo?: string, className?: string }> = 
 
     if (logo && !imgError) {
         return (
-            <div className={`rounded-full flex items-center justify-center bg-white/10 border border-white/10 shrink-0 overflow-hidden relative ${className}`}>
+            <div className={`rounded-full flex items-center justify-center bg-white/5 border border-white/10 shrink-0 overflow-hidden relative ${className}`}>
                 <img 
                     src={logo} 
                     alt={name} 
@@ -270,39 +270,46 @@ export const Sports: React.FC<SportsProps> = ({ onPlay }) => {
                     )}
                 </div>
 
-                {/* Teams */}
-                <div className="flex items-center justify-between gap-2">
+                {/* Teams - Improved Grid Layout */}
+                <div className="flex-1 flex items-center">
                     {match.teams?.home && match.teams?.away ? (
-                        <>
-                            <div className="flex-1 flex flex-col items-center text-center gap-2 min-w-0">
-                                <TeamLogo name={match.teams.home.name} logo={match.teams.home.logo} className="w-12 h-12 text-base" />
-                                <span className={`text-xs font-bold leading-tight line-clamp-2 ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
+                        <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2 w-full">
+                            {/* Home Team */}
+                            <div className="flex flex-col items-center text-center gap-2 group-hover:scale-[1.02] transition-transform">
+                                <TeamLogo name={match.teams.home.name} logo={match.teams.home.logo} className="w-12 h-12 text-base shadow-lg" />
+                                <span className={`text-sm font-bold leading-tight flex items-center justify-center min-h-[40px] w-full break-words ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
                                     {match.teams.home.name}
                                 </span>
                             </div>
                             
-                            <div className="text-[var(--text-muted)] font-black text-xs opacity-30 pb-4">VS</div>
+                            {/* VS Marker */}
+                            <div className="flex flex-col pt-4 items-center justify-center">
+                                <span className="text-[var(--text-muted)] font-black text-sm italic opacity-30">VS</span>
+                            </div>
 
-                            <div className="flex-1 flex flex-col items-center text-center gap-2 min-w-0">
-                                <TeamLogo name={match.teams.away.name} logo={match.teams.away.logo} className="w-12 h-12 text-base" />
-                                <span className={`text-xs font-bold leading-tight line-clamp-2 ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
+                            {/* Away Team */}
+                            <div className="flex flex-col items-center text-center gap-2 group-hover:scale-[1.02] transition-transform">
+                                <TeamLogo name={match.teams.away.name} logo={match.teams.away.logo} className="w-12 h-12 text-base shadow-lg" />
+                                <span className={`text-sm font-bold leading-tight flex items-center justify-center min-h-[40px] w-full break-words ${isLive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
                                     {match.teams.away.name}
                                 </span>
                             </div>
-                        </>
+                        </div>
                     ) : (
-                        <h3 className="text-sm font-bold text-[var(--text-main)] line-clamp-2 text-center w-full">{match.title}</h3>
+                        <h3 className="text-base font-bold text-[var(--text-main)] text-center w-full py-4 px-2 leading-relaxed">
+                            {match.title}
+                        </h3>
                     )}
                 </div>
 
                 {/* Footer Action */}
-                <div className="pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
+                <div className="pt-3 border-t border-[var(--border-color)] flex items-center justify-between mt-auto">
                      <span className="text-[10px] text-[var(--text-muted)] font-mono flex items-center gap-1">
                         <RadioReceiver className="w-3 h-3" /> {match.sources.length} Stream{match.sources.length !== 1 ? 's' : ''}
                      </span>
                      
                      {isLive ? (
-                         <button className="bg-[var(--text-main)] text-[var(--bg-main)] px-3 py-1 rounded text-xs font-bold flex items-center gap-1 hover:opacity-90">
+                         <button className="bg-[var(--text-main)] text-[var(--bg-main)] px-3 py-1 rounded text-xs font-bold flex items-center gap-1 hover:opacity-90 transition-opacity shadow-md">
                             <PlayCircle className="w-3 h-3" /> Watch
                          </button>
                      ) : (
