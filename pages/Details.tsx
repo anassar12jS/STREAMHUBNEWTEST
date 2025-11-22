@@ -165,30 +165,35 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
  switch (server) {
       case 'vidsrc-wtf':
         return item.media_type === MediaType.MOVIE
-          ? `https://vidsrc.xyz/embed/movie/${tmdbId}`
-          : `https://vidsrc.xyz/embed/tv/${tmdbId}/${s}-${e}`;
+          ? `https://vidsrc.wtf/api/2/movie/?id=${tmdbId}`
+          : `https://vidsrc.wtf/api/2/tv/?id=${tmdbId}&s=${s}&e=${e}`;
       case 'vidsrc-cc':
          const vidsrcCcId = imdbId || tmdbId;
         return item.media_type === MediaType.MOVIE
           ? `https://vidsrc.cc/v2/embed/movie/${vidsrcCcId}`
           : `https://vidsrc.cc/v2/embed/tv/${vidsrcCcId}/${s}/${e}`;
       case 'videasy':
+        // Videasy expects TMDB ID
         return item.media_type === MediaType.MOVIE
           ? `https://player.videasy.net/movie/${tmdbId}`
           : `https://player.videasy.net/tv/${tmdbId}/${s}/${e}`;
       case 'vidora':
+        // Vidora expects TMDB ID
         return item.media_type === MediaType.MOVIE
           ? `https://vidora.su/movie/${tmdbId}`
           : `https://vidora.su/tv/${tmdbId}/${s}/${e}`;
       case 'cinemaos':
+        // CinemaOS expects TMDB ID
         return item.media_type === MediaType.MOVIE
           ? `https://cinemaos.tech/player/${tmdbId}`
           : `https://cinemaos.tech/player/${tmdbId}/${s}/${e}`;
       case 'vidlink':
+        // VidLink expects TMDB ID
         return item.media_type === MediaType.MOVIE 
           ? `https://vidlink.pro/movie/${tmdbId}?primaryColor=a855f7` 
           : `https://vidlink.pro/tv/${tmdbId}/${s}/${e}?primaryColor=a855f7`;
       case 'vidfastpro':
+        // VidFast expects TMDB ID
         return item.media_type === MediaType.MOVIE 
           ? `https://vidfast.pro/movie/${tmdbId}`
           : `https://vidfast.pro/tv/${tmdbId}/${s}/${e}?autoPlay=true`;
