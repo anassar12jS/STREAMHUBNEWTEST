@@ -162,38 +162,33 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
     const s = selectedSeason;
     const e = selectedEpisode;
 
- switch (server) {
+    switch (server) {
       case 'vidsrc-wtf':
         return item.media_type === MediaType.MOVIE
-          ? `https://vidsrc.wtf/api/2/movie/?id=${tmdbId}`
-          : `https://vidsrc.wtf/api/2/tv/?id=${tmdbId}&s=${s}&e=${e}`;
+          ? `https://vidsrc.wtf/api/2/movie/${tmdbId}`
+          : `https://vidsrc.wtf/api/2/tv/${tmdbId}/${s}/${e}`;
       case 'vidsrc-cc':
          const vidsrcCcId = imdbId || tmdbId;
         return item.media_type === MediaType.MOVIE
           ? `https://vidsrc.cc/v2/embed/movie/${vidsrcCcId}`
           : `https://vidsrc.cc/v2/embed/tv/${vidsrcCcId}/${s}/${e}`;
       case 'videasy':
-        // Videasy expects TMDB ID
         return item.media_type === MediaType.MOVIE
           ? `https://player.videasy.net/movie/${tmdbId}`
           : `https://player.videasy.net/tv/${tmdbId}/${s}/${e}`;
       case 'vidora':
-        // Vidora expects TMDB ID
         return item.media_type === MediaType.MOVIE
           ? `https://vidora.su/movie/${tmdbId}`
           : `https://vidora.su/tv/${tmdbId}/${s}/${e}`;
       case 'cinemaos':
-        // CinemaOS expects TMDB ID
         return item.media_type === MediaType.MOVIE
           ? `https://cinemaos.tech/player/${tmdbId}`
           : `https://cinemaos.tech/player/${tmdbId}/${s}/${e}`;
       case 'vidlink':
-        // VidLink expects TMDB ID
         return item.media_type === MediaType.MOVIE 
           ? `https://vidlink.pro/movie/${tmdbId}?primaryColor=a855f7` 
           : `https://vidlink.pro/tv/${tmdbId}/${s}/${e}?primaryColor=a855f7`;
       case 'vidfastpro':
-        // VidFast expects TMDB ID
         return item.media_type === MediaType.MOVIE 
           ? `https://vidfast.pro/movie/${tmdbId}`
           : `https://vidfast.pro/tv/${tmdbId}/${s}/${e}?autoPlay=true`;
@@ -248,9 +243,9 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
   const rating = (detail.vote_average || 0).toFixed(1);
 
   const servers = [
-      { id: 'vidsrc-wtf', label: 'VidSrc WTF', icon: Zap, badge: 'Fastest' },
-      { id: 'vidsrc-cc', label: 'VidSrc CC', icon: PlayCircle, badge: 'New' },
-      { id: 'vidlink', label: 'VidLink', icon: Server, badge: 'Multi-lang' },
+      { id: 'vidsrc-wtf', label: 'VidSrc WTF', icon: Play, badge: 'Fast' },
+      { id: 'vidlink', label: 'VidLink', icon: Server, badge: 'Multi' },
+      { id: 'vidsrc-cc', label: 'VidSrc CC', icon: PlayCircle, badge: '' },
       { id: 'videasy', label: 'Videasy', icon: Film, badge: '' },
       { id: 'vidora', label: 'Vidora', icon: Tv, badge: '' },
       { id: 'cinemaos', label: 'CinemaOS', icon: Layers, badge: '' },

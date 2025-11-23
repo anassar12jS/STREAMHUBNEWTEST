@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Stream } from '../types';
-import { Magnet, Play, HardDrive, Copy, Check, PlayCircle, Download, Users, Zap } from 'lucide-react';
+import { Magnet, Play, HardDrive, Copy, Check, PlayCircle, Download, Users, Zap, Video } from 'lucide-react';
 
 interface StreamListProps {
   streams: Stream[];
@@ -112,6 +112,9 @@ export const StreamList: React.FC<StreamListProps> = ({ streams, loading, onPlay
         const qualityMatch = fullText.match(/(2160p|4k|1080p|720p|480p)/i);
         const quality = qualityMatch ? qualityMatch[0].toUpperCase() : 'UNK';
         
+        const is4k = quality === '4K' || quality === '2160P';
+        const isCam = fullText.toLowerCase().includes('cam') || fullText.toLowerCase().includes('ts');
+
         const sizeMatch = fullText.match(/(\d+(\.\d+)?\s?(GB|MB))/i);
         const size = sizeMatch ? sizeMatch[0] : '';
 
@@ -136,17 +139,21 @@ export const StreamList: React.FC<StreamListProps> = ({ streams, loading, onPlay
               
               <div className="min-w-0 flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-2 text-sm text-[var(--text-main)] font-medium leading-tight">
-                   <span>{quality}</span>
+                   {is4k && <span className="text-[10px] bg-purple-500 text-white px-1.5 py-0.5 rounded font-black shadow-[0_0_10px_rgba(168,85,247,0.5)]">4K UHD</span>}
+                   {isCam && <span className="text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold">CAM</span>}
+                   {!is4k && !isCam && <span className="text-[10px] border border-[var(--border-color)] px-1.5 rounded text-[var(--text-muted)] font-bold">{quality}</span>}
+                   
                    {isCached && <span className="text-[10px] bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded border border-blue-500/20 font-bold">⚡ CACHED</span>}
-                   {isDirect && !isCached && <span className="text-[10px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded border border-orange-500/20 font-bold">☁️ DOWNLOAD</span>}
-                   {size && <span className="text-xs text-[var(--text-muted)] font-normal">• {size}</span>}
+                   
+                   {size && <span className="text-xs text-[var(--text-muted)] font-normal hidden sm:inline">• {size}</span>}
+                   
                    {!isDirect && seeds && (
                      <span className="text-xs text-emerald-500 font-normal flex items-center gap-0.5">
                        <Users className="w-3 h-3" /> {seeds}
                      </span>
                    )}
                 </div>
-                <div className="text-[11px] text-[var(--text-muted)] font-mono truncate">
+                <div className="text-[11px] text-[var(--text-muted)] font-mono truncate mt-0.5 opacity-70">
                    {source} • {titleLines.slice(0, 1).join(' ')}
                 </div>
               </div>
@@ -158,7 +165,7 @@ export const StreamList: React.FC<StreamListProps> = ({ streams, loading, onPlay
                 {isDirect && (
                     <button
                     onClick={() => onPlay(stream)}
-                    className={`flex items-center gap-1.5 ${isCached ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-main)]'} px-3 py-1.5 rounded text-xs font-bold transition-colors`}
+                    className={`flex items-center gap-1.5 ${isCached ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-main)]'} px-3 py-1.5 rounded text-xs font-bold transition-colors shadow-sm`}
                     >
                     <PlayCircle className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Play</span>
