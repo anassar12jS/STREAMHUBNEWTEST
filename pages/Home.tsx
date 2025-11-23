@@ -140,7 +140,7 @@ export const Home: React.FC<HomeProps> = ({ onSelect }) => {
                   <TrendingUp className="w-3 h-3" /> Trending #1
                 </span>
                 <span className="inline-flex items-center gap-1 py-1 px-3 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-bold border border-white/10">
-                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {heroItem.vote_average.toFixed(1)}
+                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {(heroItem.vote_average || 0).toFixed(1)}
                 </span>
              </div>
             

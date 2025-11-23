@@ -245,6 +245,7 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
 
   const backdropUrl = detail.backdrop_path ? `${TMDB_IMAGE_BASE}${detail.backdrop_path}` : '';
   const posterUrl = detail.poster_path ? `${TMDB_POSTER_BASE}${detail.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster';
+  const rating = (detail.vote_average || 0).toFixed(1);
 
   const servers = [
       { id: 'vidsrc-wtf', label: 'VidSrc WTF', icon: Zap, badge: 'Fastest' },
@@ -293,10 +294,10 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
                         <img src={posterUrl} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col justify-center gap-2 min-w-0 flex-1">
-                         <h1 className="text-2xl font-bold text-[var(--text-main)] leading-tight">{detail.title || detail.name}</h1>
+                         <h1 className="text-xl font-bold text-[var(--text-main)] leading-tight">{detail.title || detail.name}</h1>
                          <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
                             <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                            <span className="text-[var(--text-main)]">{detail.vote_average.toFixed(1)}</span>
+                            <span className="text-[var(--text-main)]">{rating}</span>
                             <span>•</span>
                             <span>{detail.release_date?.split('-')[0] || 'N/A'}</span>
                          </div>
@@ -307,9 +308,9 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
                 </div>
 
                 <div className="hidden lg:block mb-6">
-                    <h1 className="text-5xl font-bold text-[var(--text-main)] mb-4 tracking-tight">{detail.title || detail.name}</h1>
-                    <div className="flex items-center gap-4 text-[var(--text-muted)] text-base">
-                        <span className="flex items-center gap-1 text-[var(--text-main)] font-bold"><Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> {detail.vote_average.toFixed(1)}</span>
+                    <h1 className="text-4xl font-bold text-[var(--text-main)] mb-3 tracking-tight">{detail.title || detail.name}</h1>
+                    <div className="flex items-center gap-4 text-[var(--text-muted)] text-sm">
+                        <span className="flex items-center gap-1 text-[var(--text-main)] font-bold"><Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> {rating}</span>
                         <span>{detail.release_date || detail.first_air_date}</span>
                         {detail.runtime && <span>{detail.runtime} min</span>}
                         <div className="flex gap-2 ml-2">
@@ -320,7 +321,7 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
 
                 <div className="mb-8">
                     <h3 className="text-[var(--text-main)] font-bold text-lg mb-2 flex items-center gap-2"><Info className="w-4 h-4 opacity-70"/> Overview</h3>
-                    <p className="text-[var(--text-muted)] leading-relaxed text-lg">{detail.overview}</p>
+                    <p className="text-[var(--text-muted)] leading-relaxed text-sm">{detail.overview}</p>
                 </div>
 
                 {detail.credits && detail.credits.cast.length > 0 && (

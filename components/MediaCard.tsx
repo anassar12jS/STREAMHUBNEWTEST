@@ -21,6 +21,9 @@ export const MediaCard: React.FC<MediaCardProps> = ({ item, onClick }) => {
         ? `${TMDB_POSTER_BASE}${item.poster_path}` 
         : 'https://picsum.photos/300/450?blur=2';
 
+  // Safely handle vote_average being undefined
+  const rating = (item.vote_average || 0).toFixed(1);
+
   return (
     <div 
       className="group relative flex-shrink-0 w-[160px] md:w-[200px] cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10"
@@ -36,7 +39,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({ item, onClick }) => {
         
         <div className="absolute top-2 right-2 bg-black/70 px-1.5 py-0.5 rounded text-xs font-bold text-yellow-400 flex items-center gap-1 backdrop-blur-sm">
           <Star className="w-3 h-3 fill-yellow-400" />
-          {item.vote_average.toFixed(1)}
+          {rating}
         </div>
       </div>
 
