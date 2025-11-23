@@ -165,8 +165,8 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
     switch (server) {
       case 'vidsrc-wtf':
         return item.media_type === MediaType.MOVIE
-          ? `https://vidsrc.wtf/api/2/movie/${tmdbId}`
-          : `https://vidsrc.wtf/api/2/tv/${tmdbId}/${s}/${e}`;
+          ? `https://vidsrc.wtf/api/2/movie/?id=${tmdbId}`
+          : `https://vidsrc.wtf/api/2/tv/?id=${tmdbId}&s=${s}&e=${e}`;
       case 'vidsrc-cc':
          const vidsrcCcId = imdbId || tmdbId;
         return item.media_type === MediaType.MOVIE
