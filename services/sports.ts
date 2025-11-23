@@ -1,16 +1,20 @@
 
-import { SportsMatch, SportsMatchSource, SportsStream } from '../types';
+import { SportsMatch, SportsStream } from '../types';
 
 // ==========================================
-// NEW API INTEGRATION
+// API CONFIGURATION
 // ==========================================
-// The backend API for ppv.to
-const NEW_API_BASE = 'https://ppv.to'; 
+const API_DOMAIN = 'https://ppv.to';
+const PROXY_URL = 'https://corsproxy.io/?';
+
+// Endpoints
+const API_BASE = `${API_DOMAIN}/api`;
+const IMG_BASE = `${API_DOMAIN}/api/images`;
 
 interface NewApiStream {
     id: number;
-    name: string; // e.g. "Pelicans at Pacers"
-    tag: string;  // e.g. "Local Broadcast"
+    name: string;
+    tag: string;
     poster: string;
     uri_name: string;
     starts_at: number;
@@ -31,12 +35,7 @@ interface NewApiResponse {
     streams: NewApiCategory[];
 }
 
-// ... existing streamed.pk constants ...
-const PROXY_URL = 'https://corsproxy.io/?';
-const API_BASE = 'https://streamed.pk/api';
-const IMG_BASE = 'https://streamed.pk/api/images';
-
-// ... existing helpers ...
+// Helper to fetch through proxy
 const fetchApi = async (endpoint: string) => {
   const targetUrl = `${API_BASE}${endpoint}`;
   const url = `${PROXY_URL}${encodeURIComponent(targetUrl)}`;
@@ -46,6 +45,7 @@ const fetchApi = async (endpoint: string) => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (e) {
+    // Fallback: Try direct fetch in case proxy fails or CORS is permissive
     try {
         const directRes = await fetch(targetUrl);
         if (!directRes.ok) throw new Error('Direct fetch failed');
@@ -58,11 +58,12 @@ const fetchApi = async (endpoint: string) => {
 
 const formatPosterUrl = (path: string) => {
     if (!path) return undefined;
-    if (path.startsWith('http')) return path; // New API returns full URLs
+    if (path.startsWith('http')) return path; 
     
     let finalUrl = '';
+    // Handle different path formats from API
     if (path.startsWith('/')) {
-        finalUrl = `https://streamed.pk${path}.webp`;
+        finalUrl = `${API_DOMAIN}${path}.webp`;
     } else {
         finalUrl = `${IMG_BASE}/proxy/${path}.webp`;
     }
@@ -73,13 +74,13 @@ const formatPosterUrl = (path: string) => {
 // SERVICE METHODS
 // ==========================================
 
-const getMatchesFromNewApi = async (): Promise<SportsMatch[]> => {
-    const targetUrl = `${NEW_API_BASE}/api/streams`;
+export const getAllMatches = async (): Promise<SportsMatch[]> => {
+    const targetUrl = `${API_BASE}/streams`;
     const url = `${PROXY_URL}${encodeURIComponent(targetUrl)}`;
 
     try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error('New API Failed');
+        if (!res.ok) throw new Error('API Failed');
         const data: NewApiResponse = await res.json();
         
         if (!data.success || !data.streams) return [];
@@ -91,6 +92,9 @@ const getMatchesFromNewApi = async (): Promise<SportsMatch[]> => {
             const categoryName = cat.category;
             
             cat.streams.forEach(stream => {
+                // Filter out 24/7 streams (always_live === 1)
+                if (stream.always_live) return;
+
                 // Find existing match to append source (fuzzy match by title + time window)
                 // We use a larger window (3 hours) because sometimes start times drift
                 let existing = matches.find(m => m.title === stream.name && Math.abs(m.date - (stream.starts_at * 1000)) < 10800000);
@@ -117,47 +121,13 @@ const getMatchesFromNewApi = async (): Promise<SportsMatch[]> => {
 
         return matches;
     } catch (e) {
-        console.error("New API Error", e);
+        console.error("API Error", e);
         return [];
     }
 };
 
-export const getAllMatches = async (): Promise<SportsMatch[]> => {
-  // Priority: Use New API if configured
-  if (NEW_API_BASE) {
-      return await getMatchesFromNewApi();
-  }
-
-  try {
-    const data = await fetchApi('/matches/all');
-    if (!Array.isArray(data)) return [];
-
-    return data.map((match: any) => {
-        const mapTeam = (team: any) => {
-            if (!team) return undefined;
-            return {
-                name: team.name,
-                logo: team.badge ? `${IMG_BASE}/badge/${team.badge}.webp` : undefined
-            };
-        };
-
-        return {
-            ...match,
-            poster: match.poster ? formatPosterUrl(match.poster) : undefined,
-            teams: match.teams ? {
-                home: mapTeam(match.teams.home),
-                away: mapTeam(match.teams.away)
-            } : undefined
-        };
-    });
-  } catch (e) {
-    console.error("Failed to fetch matches:", e);
-    return [];
-  }
-};
-
 export const getMatchStreams = async (source: string, id: string): Promise<SportsStream[]> => {
-  // Handle Direct Iframe from New API
+  // 1. Handle Direct Iframe (Preferred)
   if (id.startsWith('iframe:')) {
       let url = id.replace('iframe:', '');
 
@@ -182,6 +152,7 @@ export const getMatchStreams = async (source: string, id: string): Promise<Sport
       }];
   }
 
+  // 2. Handle Stream Lookup via API (Fallback for non-iframe sources)
   try {
     const safeSource = source.toLowerCase();
     const safeId = encodeURIComponent(id);
