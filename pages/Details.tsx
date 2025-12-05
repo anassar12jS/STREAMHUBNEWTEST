@@ -8,7 +8,7 @@ import { TMDB_IMAGE_BASE, TMDB_POSTER_BASE } from '../constants';
 import { StreamList } from '../components/StreamList';
 import { MediaCard } from '../components/MediaCard';
 import { Footer } from '../components/Footer';
-import { ArrowLeft, Star, Youtube, PlayCircle, Tv, Film, X, Server, AlertCircle, Download, Info, Plus, Check, Sparkles, Captions, ChevronUp, ChevronDown, Layers, Zap, Play, Share2, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Star, Youtube, PlayCircle, Tv, Film, X, Server, AlertCircle, Download, Info, Plus, Check, Sparkles, Captions, ChevronDown, Layers, Zap, Play, Share2, Lightbulb, Shield, ShieldAlert } from 'lucide-react';
 
 interface DetailsProps {
   item: TMDBResult;
@@ -41,6 +41,9 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
   
   // Cinema Mode State
   const [cinemaMode, setCinemaMode] = useState(false);
+  
+  // AdBlock / Sandbox State
+  const [adBlockEnabled, setAdBlockEnabled] = useState(false);
   
   const playerRef = useRef<HTMLDivElement>(null);
   const streamsRef = useRef<HTMLDivElement>(null);
@@ -168,8 +171,8 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
     switch (server) {
       case 'vidsrc-wtf':
         return item.media_type === MediaType.MOVIE
-          ? `https://vidsrc.wtf/api/2/movie/?id=${tmdbId}`
-          : `https://vidsrc.wtf/api/2/tv/?id=${tmdbId}&s=${s}&e=${e}`;
+          ? `https://vidsrc.wtf/embed/movie/${imdbId}`
+          : `https://vidsrc.wtf/embed/tv/${imdbId}/${s}/${e}`;
       case 'vidsrc-cc':
          const vidsrcCcId = imdbId || tmdbId;
         return item.media_type === MediaType.MOVIE
@@ -215,6 +218,8 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
   const handleServerChange = (newServer: ServerType) => {
       setServer(newServer);
       setIframeLoading(true);
+      // Reset ad block on server change to ensure compatibility, or keep it if preferred
+      // setAdBlockEnabled(false); 
   };
 
   const openSubtitles = () => {
@@ -250,28 +255,43 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
       { id: 'vidlink', label: 'VidLink', icon: Server, badge: 'Multi' },
       { id: 'vidsrc-cc', label: 'VidSrc CC', icon: PlayCircle, badge: '' },
       { id: 'videasy', label: 'Videasy', icon: Film, badge: '' },
-      { id: 'vidora', label: 'Vidora', icon: Tv, badge: '' },
-      { id: 'cinemaos', label: 'CinemaOS', icon: Layers, badge: '' },
-      { id: 'vidfastpro', label: 'VidFast', icon: Zap, badge: '' },
+      { id: 'vidora', label: 'Vidora', icon: Zap, badge: '' },
+      { id: 'cinemaos', label: 'CinemaOS', icon: Film, badge: '' },
+      { id: 'vidfastpro', label: 'VidFast', icon: Zap, badge: 'New' },
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans transition-colors duration-300 flex flex-col relative">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans transition-colors duration-300 flex flex-col relative overflow-hidden">
       
       {/* Cinema Mode Overlay */}
-      {cinemaMode && (
-        <div 
-            className="fixed inset-0 z-40 bg-black animate-in fade-in duration-700 cursor-pointer"
-            onClick={() => setCinemaMode(false)}
-            title="Click to exit Lights Off mode"
-        ></div>
+      <div 
+        className={`fixed inset-0 bg-black z-40 transition-opacity duration-700 pointer-events-none ${cinemaMode ? 'opacity-100' : 'opacity-0'}`}
+      ></div>
+
+      {/* Trailer Modal */}
+      {showTrailerModal && trailer && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 animate-in fade-in">
+              <div className="w-full max-w-5xl aspect-video relative bg-black rounded-xl overflow-hidden shadow-2xl">
+                  <button onClick={() => setShowTrailerModal(false)} className="absolute top-4 right-4 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-white hover:text-black transition-colors"><X className="w-6 h-6" /></button>
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`} 
+                    title={trailer.name} 
+                    frameBorder="0" 
+                    allow="autoplay; encrypted-media" 
+                    allowFullScreen
+                  ></iframe>
+              </div>
+          </div>
       )}
 
-      <div className="fixed inset-0 z-0">
+      {/* Background Hero */}
+      <div className="absolute inset-0 z-0 h-[70vh]">
         {backdropUrl && (
             <>
-                <img src={backdropUrl} alt="bg" className="w-full h-full object-cover opacity-20 blur-lg scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-main)]/80 via-[var(--bg-main)]/95 to-[var(--bg-main)]" />
+                <img src={backdropUrl} alt="bg" className="w-full h-full object-cover opacity-30 blur-sm scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-main)]/60 via-[var(--bg-main)]/90 to-[var(--bg-main)]" />
             </>
         )}
       </div>
@@ -283,73 +303,77 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
             </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 lg:gap-12 mb-10">
-            <div className="hidden lg:block">
-                <div className="sticky top-24 space-y-4">
-                    <div className="rounded-lg overflow-hidden shadow-2xl border border-[var(--border-color)] aspect-[2/3] group relative">
-                        <img src={posterUrl} alt={detail.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
-                    </div>
-                    {detail.tagline && (
-                        <p className="text-center text-sm text-[var(--text-muted)] italic">"{detail.tagline}"</p>
-                    )}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[300px_1fr] gap-8 mb-12">
+            
+            {/* Poster Column */}
+            <div className="hidden md:block">
+                <div className="sticky top-24 rounded-xl overflow-hidden shadow-2xl border border-[var(--border-color)] aspect-[2/3] group">
+                    <img src={posterUrl} alt={detail.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
             </div>
 
+            {/* Info Column */}
             <div className="flex flex-col min-w-0">
-                <div className="lg:hidden flex gap-4 mb-6">
-                    <div className="w-28 shrink-0 rounded overflow-hidden shadow-lg border border-[var(--border-color)] aspect-[2/3]">
+                {/* Mobile Poster & Title */}
+                <div className="md:hidden flex gap-4 mb-6">
+                    <div className="w-28 shrink-0 rounded-lg overflow-hidden shadow-lg border border-[var(--border-color)] aspect-[2/3]">
                         <img src={posterUrl} className="w-full h-full object-cover" />
                     </div>
-                    <div className="flex flex-col justify-center gap-2 min-w-0 flex-1">
-                         <h1 className="text-xl font-bold text-[var(--text-main)] leading-tight">{detail.title || detail.name}</h1>
-                         <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-                            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                            <span className="text-[var(--text-main)]">{rating}</span>
+                    <div className="flex flex-col justify-center">
+                         <h1 className="text-xl font-bold text-[var(--text-main)] leading-tight mb-1">{detail.title || detail.name}</h1>
+                         <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
+                            <span className="flex items-center gap-1 text-[var(--text-main)] font-bold"><Star className="w-3 h-3 text-yellow-500 fill-yellow-500" /> {rating}</span>
                             <span>•</span>
-                            <span>{detail.release_date?.split('-')[0] || 'N/A'}</span>
-                         </div>
-                         <div className="flex flex-wrap gap-1 mt-1">
-                            {detail.genres.slice(0, 3).map(g => <span key={g.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] px-2 py-0.5 rounded text-[10px]">{g.name}</span>)}
+                            <span>{(detail.release_date || detail.first_air_date)?.split('-')[0]}</span>
+                            <span>•</span>
+                            <span className="border border-[var(--border-color)] px-1 rounded">{item.media_type === MediaType.MOVIE ? 'Movie' : 'TV'}</span>
                          </div>
                     </div>
                 </div>
 
-                <div className="hidden lg:block mb-6">
-                    <h1 className="text-4xl font-bold text-[var(--text-main)] mb-3 tracking-tight">{detail.title || detail.name}</h1>
-                    <div className="flex items-center gap-4 text-[var(--text-muted)] text-sm">
-                        <span className="flex items-center gap-1 text-[var(--text-main)] font-bold"><Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> {rating}</span>
-                        <span>{detail.release_date || detail.first_air_date}</span>
-                        {detail.runtime && <span>{detail.runtime} min</span>}
-                        <div className="flex gap-2 ml-2">
-                            {detail.genres.map(g => <span key={g.id} className="border border-[var(--border-color)] bg-[var(--bg-card)]/50 px-3 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm">{g.name}</span>)}
+                {/* Desktop Title & Meta */}
+                <div className="hidden md:block mb-6">
+                    <h1 className="text-4xl lg:text-5xl font-black text-[var(--text-main)] mb-2 tracking-tight">{detail.title || detail.name}</h1>
+                    {detail.tagline && <p className="text-[var(--text-muted)] italic text-lg mb-4 opacity-80">{detail.tagline}</p>}
+                    
+                    <div className="flex flex-wrap items-center gap-4 text-[var(--text-muted)] text-sm font-medium">
+                        <span className="flex items-center gap-1 text-[var(--text-main)] bg-[var(--bg-card)] px-2 py-1 rounded border border-[var(--border-color)]">
+                            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" /> {rating}
+                        </span>
+                        <span>{(detail.release_date || detail.first_air_date)?.split('-')[0]}</span>
+                        {detail.runtime && <span>{Math.floor(detail.runtime / 60)}h {detail.runtime % 60}m</span>}
+                        {detail.number_of_seasons && <span>{detail.number_of_seasons} Seasons</span>}
+                        <div className="flex gap-2">
+                            {detail.genres.map(g => <span key={g.id} className="text-[rgb(var(--primary-color))]">#{g.name}</span>)}
                         </div>
                     </div>
                 </div>
 
                 <div className="mb-8">
-                    <h3 className="text-[var(--text-main)] font-bold text-lg mb-2 flex items-center gap-2"><Info className="w-4 h-4 opacity-70"/> Overview</h3>
-                    <p className="text-[var(--text-muted)] leading-relaxed text-sm">{detail.overview}</p>
+                    <h3 className="text-[var(--text-main)] font-bold text-lg mb-2 flex items-center gap-2">Overview</h3>
+                    <p className="text-[var(--text-muted)] leading-relaxed text-base md:text-lg">{detail.overview}</p>
                 </div>
 
+                {/* Cast */}
                 {detail.credits && detail.credits.cast.length > 0 && (
-                    <div className="mb-10">
-                        <h3 className="text-[var(--text-main)] font-bold text-lg mb-4">Top Cast</h3>
+                    <div className="mb-8">
+                        <h3 className="text-[var(--text-main)] font-bold text-sm uppercase tracking-wider mb-4 text-[var(--text-muted)]">Top Cast</h3>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
                             {detail.credits.cast.slice(0, 10).map(actor => (
                                 <div 
                                     key={actor.id} 
-                                    className="w-20 sm:w-24 shrink-0 text-center cursor-pointer group"
+                                    className="w-20 md:w-24 shrink-0 text-center cursor-pointer group"
                                     onClick={() => onPersonClick && onPersonClick(actor.id)}
                                 >
-                                    <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full overflow-hidden mb-2 border-2 border-[var(--border-color)] group-hover:border-[rgb(var(--primary-color))] transition-colors">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 mx-auto rounded-full overflow-hidden mb-2 border-2 border-[var(--border-color)] group-hover:border-[rgb(var(--primary-color))] transition-colors shadow-lg">
                                         <img 
                                             src={actor.profile_path ? `${TMDB_POSTER_BASE}${actor.profile_path}` : 'https://via.placeholder.com/100x100?text=?'} 
                                             className="w-full h-full object-cover"
                                             alt={actor.name}
                                         />
                                     </div>
-                                    <p className="text-xs text-[var(--text-main)] font-medium truncate group-hover:text-[rgb(var(--primary-color))] transition-colors">{actor.name}</p>
+                                    <p className="text-xs text-[var(--text-main)] font-bold truncate">{actor.name}</p>
                                     <p className="text-[10px] text-[var(--text-muted)] truncate">{actor.character}</p>
                                 </div>
                             ))}
@@ -357,285 +381,283 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
                     </div>
                 )}
 
-                <div className="mb-8 sticky top-4 z-20 bg-[var(--bg-main)]/90 backdrop-blur-xl p-2 rounded-2xl border border-[var(--border-color)] shadow-2xl flex flex-wrap gap-3 sm:flex-nowrap items-stretch">
+                {/* Control Center - Action Bar */}
+                <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex flex-wrap items-center gap-4 shadow-lg mb-8">
                      <button 
-                        onClick={() => activateSection('player')}
-                        className={`flex-grow sm:flex-[2] flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg group ${activeSection === 'player' ? 'ring-2 ring-offset-2 ring-offset-[var(--bg-main)] ring-[rgb(var(--primary-color))]' : ''} bg-gradient-to-r from-[rgb(var(--primary-color))] to-purple-600 text-white hover:opacity-90 hover:scale-[1.02]`}
+                        onClick={() => activateSection(activeSection === 'player' ? 'none' : 'player')}
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all shadow-lg transform hover:scale-105 ${activeSection === 'player' ? 'bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--text-main)]' : 'bg-gradient-to-r from-[rgb(var(--primary-color))] to-blue-600 text-white'}`}
                      >
-                        <Play className="w-6 h-6 fill-current" /> 
-                        <span>Play Now</span>
+                        {activeSection === 'player' ? <X className="w-5 h-5" /> : <PlayCircle className="w-5 h-5 fill-current" />}
+                        <span>{activeSection === 'player' ? 'Close Player' : 'Play Now'}</span>
                      </button>
 
                      <button 
-                        onClick={() => activateSection('downloads')}
-                        className={`flex-grow sm:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold border transition-all duration-300 ${activeSection === 'downloads' ? 'bg-[var(--text-main)] text-[var(--bg-main)] border-[var(--text-main)]' : 'bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--border-color)] hover:bg-[var(--bg-hover)]'}`}
+                        onClick={() => activateSection(activeSection === 'downloads' ? 'none' : 'downloads')}
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold border transition-all ${activeSection === 'downloads' ? 'bg-[rgb(var(--primary-color))]/10 border-[rgb(var(--primary-color))] text-[rgb(var(--primary-color))]' : 'bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-hover)]'}`}
                      >
                         <Download className="w-5 h-5" />
-                        <span>Download</span>
+                        <span>Downloads</span>
                      </button>
-
-                     <div className="flex gap-2 flex-grow sm:flex-none">
-                         <button 
-                            onClick={toggleLibrary}
-                            className={`flex-1 sm:w-16 flex flex-col items-center justify-center gap-1 rounded-xl border transition-colors ${inLibrary ? 'bg-[rgb(var(--primary-color))]/10 border-[rgb(var(--primary-color))] text-[rgb(var(--primary-color))]' : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'}`}
-                            title={inLibrary ? "Remove from List" : "Add to List"}
-                        >
-                            {inLibrary ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                            <span className="text-[10px] font-bold uppercase">{inLibrary ? 'Added' : 'List'}</span>
-                         </button>
-
-                         {trailer && (
-                             <button 
-                                onClick={() => setShowTrailerModal(true)}
-                                className="flex-1 sm:w-16 flex flex-col items-center justify-center gap-1 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-red-500 hover:border-red-500/50 hover:bg-red-500/5 transition-all"
-                                title="Watch Trailer"
-                             >
-                                <Youtube className="w-5 h-5" />
-                                <span className="text-[10px] font-bold uppercase">Trailer</span>
-                             </button>
-                         )}
-
-                         <button 
-                            onClick={handleShare}
-                            className="flex-1 sm:w-16 flex flex-col items-center justify-center gap-1 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all"
-                            title="Share"
-                         >
+                     
+                     <div className="w-[1px] h-8 bg-[var(--border-color)] hidden md:block mx-2"></div>
+                     
+                     <div className="flex items-center gap-2 w-full md:w-auto justify-center">
+                        <button onClick={toggleLibrary} className="p-3 rounded-full bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] transition-colors" title={inLibrary ? "Remove from List" : "Add to List"}>
+                            {inLibrary ? <Check className="w-5 h-5 text-[rgb(var(--primary-color))]" /> : <Plus className="w-5 h-5" />}
+                        </button>
+                        
+                        {trailer && (
+                            <button onClick={() => setShowTrailerModal(true)} className="p-3 rounded-full bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] transition-colors" title="Watch Trailer">
+                                <Youtube className="w-5 h-5 text-red-600" />
+                            </button>
+                        )}
+                        
+                        <button onClick={handleShare} className="p-3 rounded-full bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] transition-colors" title="Share">
                             <Share2 className="w-5 h-5" />
-                            <span className="text-[10px] font-bold uppercase">Share</span>
-                         </button>
+                        </button>
                      </div>
                 </div>
 
-                <div ref={sectionContainerRef} className={`scroll-mt-32 min-h-[50px] relative transition-all duration-500 ${cinemaMode ? 'z-50' : ''}`}>
-                    {activeSection === 'none' && (
-                        <div className="text-center py-10 opacity-50 border-2 border-dashed border-[var(--border-color)] rounded-2xl">
-                            <Film className="w-12 h-12 mx-auto mb-2 text-[var(--text-muted)]" />
-                            <p className="text-[var(--text-muted)]">Select <span className="font-bold text-[var(--text-main)]">Play Now</span> or <span className="font-bold text-[var(--text-main)]">Download</span> to begin.</p>
-                        </div>
-                    )}
-
+                {/* DYNAMIC SECTIONS CONTAINER */}
+                <div ref={sectionContainerRef} className="scroll-mt-24 relative z-50">
+                    
+                    {/* PLAYER SECTION */}
                     {activeSection === 'player' && (
-                        <div ref={playerRef} className="animate-in fade-in slide-in-from-bottom-6 duration-500">
-                            {/* Cinema Mode Toggle */}
-                            <div className="flex justify-end mb-2">
-                                <button 
-                                    onClick={() => setCinemaMode(!cinemaMode)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                                        cinemaMode 
-                                            ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/50' 
-                                            : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-color)]'
-                                    }`}
-                                >
-                                    <Lightbulb className={`w-3.5 h-3.5 ${cinemaMode ? 'fill-current' : ''}`} />
-                                    {cinemaMode ? 'Lights On' : 'Lights Off'}
-                                </button>
-                            </div>
+                        <div className="mb-10 animate-fade-in-up">
+                            {/* TV Episode Selector inside Player */}
+                            {item.media_type === MediaType.TV && (
+                                <div className="mb-4 bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] flex flex-wrap gap-4 items-center justify-between">
+                                    <div className="flex items-center gap-2 font-bold text-[var(--text-main)]">
+                                        <Tv className="w-5 h-5 text-[rgb(var(--primary-color))]" />
+                                        <span>Now Playing:</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="relative">
+                                            <select 
+                                                value={selectedSeason} 
+                                                onChange={(e) => { setSelectedSeason(Number(e.target.value)); setSelectedEpisode(1); }}
+                                                className="appearance-none bg-[var(--bg-input)] border border-[var(--border-color)] text-[var(--text-main)] pl-3 pr-8 py-2 rounded font-bold text-sm focus:border-[rgb(var(--primary-color))] outline-none cursor-pointer"
+                                            >
+                                                {[...Array(detail.number_of_seasons || 1)].map((_, i) => <option key={i} value={i + 1}>Season {i + 1}</option>)}
+                                            </select>
+                                            <ChevronDown className="w-3 h-3 absolute right-3 top-3 pointer-events-none text-[var(--text-muted)]" />
+                                        </div>
+                                        <div className="relative">
+                                            <select 
+                                                value={selectedEpisode} 
+                                                onChange={(e) => setSelectedEpisode(Number(e.target.value))}
+                                                className="appearance-none bg-[var(--bg-input)] border border-[var(--border-color)] text-[var(--text-main)] pl-3 pr-8 py-2 rounded font-bold text-sm focus:border-[rgb(var(--primary-color))] outline-none cursor-pointer"
+                                            >
+                                                {[...Array(getEpisodeCount(selectedSeason))].map((_, i) => <option key={i} value={i + 1}>Episode {i + 1}</option>)}
+                                            </select>
+                                            <ChevronDown className="w-3 h-3 absolute right-3 top-3 pointer-events-none text-[var(--text-muted)]" />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
-                            <div className="flex flex-col gap-4 bg-[var(--bg-card)] p-2 sm:p-4 rounded-2xl border border-[var(--border-color)] shadow-2xl">
+                            {/* Player Wrapper */}
+                            <div className="bg-black/50 p-1 rounded-2xl border border-[var(--border-color)] backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                                
+                                {/* Server Tabs */}
                                 {server !== 'direct' && (
-                                    <div className="flex items-center gap-3 mb-2 overflow-x-auto pb-2 custom-scrollbar">
-                                        <span className="text-xs font-bold text-[var(--text-muted)] uppercase shrink-0 px-2">Server:</span>
+                                    <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 px-1 pt-1 custom-scrollbar">
                                         {servers.map((srv) => {
                                             const Icon = srv.icon;
                                             return (
                                                 <button
                                                     key={srv.id}
                                                     onClick={() => handleServerChange(srv.id as ServerType)}
-                                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-bold whitespace-nowrap transition-all ${
+                                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
                                                         server === srv.id 
-                                                            ? 'bg-[var(--text-main)] text-[var(--bg-main)] border-[var(--text-main)] shadow-md' 
-                                                            : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-transparent hover:border-[var(--border-color)] hover:text-[var(--text-main)]'
+                                                            ? 'bg-[var(--text-main)] text-[var(--bg-main)] border-[var(--text-main)] shadow-lg' 
+                                                            : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border-color)] hover:bg-[var(--bg-hover)]'
                                                     }`}
                                                 >
                                                     <Icon className="w-3 h-3" />
                                                     {srv.label}
-                                                    {srv.badge && (
-                                                        <span className={`px-1.5 py-0.5 rounded text-[8px] ml-1 ${
-                                                            server === srv.id 
-                                                                ? 'bg-[var(--bg-main)] text-[var(--text-main)]' 
-                                                                : 'bg-[rgb(var(--primary-color))] text-white'
-                                                        }`}>
-                                                            {srv.badge}
-                                                        </span>
-                                                    )}
+                                                    {srv.badge && <span className="bg-[rgb(var(--primary-color))] text-white px-1 rounded text-[8px] ml-1">{srv.badge}</span>}
                                                 </button>
                                             );
                                         })}
                                     </div>
                                 )}
 
-                                {item.media_type === MediaType.TV && (
-                                    <div className="flex flex-wrap gap-4 mb-2 bg-[var(--bg-input)]/50 p-3 rounded-xl border border-[var(--border-color)]">
-                                        <div className="flex items-center gap-2">
-                                            <Tv className="w-4 h-4 text-[var(--text-muted)]" />
-                                            <select value={selectedSeason} onChange={(e) => { setSelectedSeason(parseInt(e.target.value)); setSelectedEpisode(1); }} className="bg-transparent font-bold text-[var(--text-main)] outline-none cursor-pointer">
-                                                {[...Array(detail.number_of_seasons || 1)].map((_, i) => <option key={i} value={i + 1} className="bg-[var(--bg-card)]">Season {i + 1}</option>)}
-                                            </select>
+                                {/* Video Area */}
+                                <div ref={playerRef} className="w-full aspect-video bg-black rounded-xl overflow-hidden relative group">
+                                    
+                                    {/* Loading Overlay */}
+                                    {server !== 'direct' && iframeLoading && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10">
+                                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-4"></div>
+                                            <p className="text-white text-xs font-bold animate-pulse">Connecting to Server...</p>
                                         </div>
-                                        <div className="w-px h-6 bg-[var(--border-color)] mx-2"></div>
-                                        <div className="flex items-center gap-2">
-                                             <span className="text-xs font-bold text-[var(--text-muted)] uppercase mr-2">Episode:</span>
-                                             <select 
-                                                value={selectedEpisode} 
-                                                onChange={(e) => setSelectedEpisode(parseInt(e.target.value))}
-                                                className="bg-transparent font-bold text-[var(--text-main)] outline-none cursor-pointer"
-                                             >
-                                                {[...Array(getEpisodeCount(selectedSeason))].map((_, i) => (
-                                                    <option key={i} value={i + 1} className="bg-[var(--bg-card)]">Episode {i + 1}</option>
-                                                ))}
-                                             </select>
-                                        </div>
-                                    </div>
-                                )}
+                                    )}
 
-                                <div className="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-inner relative group ring-1 ring-white/10">
-                                    <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                        <div className="pointer-events-auto flex items-center gap-2">
-                                            <button onClick={openSubtitles} className="flex items-center gap-1 bg-black/60 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 backdrop-blur-md transition-colors">
-                                                <Captions className="w-4 h-4" /> Subtitles
+                                    {/* Player Controls Overlay */}
+                                    <div className={`absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-30 transition-opacity duration-300 ${cinemaMode ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => setCinemaMode(!cinemaMode)}
+                                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${cinemaMode ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/50' : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-color)]'}`}
+                                            >
+                                                <Lightbulb className={`w-3.5 h-3.5 ${cinemaMode ? 'fill-black' : ''}`} />
+                                                {cinemaMode ? 'Lights On' : 'Lights Off'}
+                                            </button>
+
+                                            {server !== 'direct' && (
+                                                <button 
+                                                    onClick={() => setAdBlockEnabled(!adBlockEnabled)}
+                                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                                                        adBlockEnabled 
+                                                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/50' 
+                                                            : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-color)]'
+                                                    }`}
+                                                    title={adBlockEnabled ? "Popups Blocked (May break some players)" : "Enable Anti-Popup Mode"}
+                                                >
+                                                    {adBlockEnabled ? <Shield className="w-3.5 h-3.5 fill-current" /> : <ShieldAlert className="w-3.5 h-3.5" />}
+                                                    {adBlockEnabled ? 'No Popups' : 'Allow Popups'}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <button onClick={openSubtitles} className="bg-black/60 hover:bg-black/80 text-white px-3 py-1.5 rounded text-xs font-bold backdrop-blur-md border border-white/10 transition-colors flex items-center gap-1">
+                                                <Captions className="w-3.5 h-3.5" /> Subs
                                             </button>
                                         </div>
-                                        <button onClick={() => { setActiveSection('none'); setDirectUrl(''); setCinemaMode(false); }} className="pointer-events-auto bg-black/60 hover:bg-red-600 text-white p-2 rounded-full transition-colors backdrop-blur-md border border-white/10"><X className="w-4 h-4" /></button>
                                     </div>
                                     
+                                    {/* The Player */}
                                     {server === 'direct' ? (
-                                        <div className="w-full h-full bg-black flex items-center justify-center relative">
+                                        <div className="w-full h-full bg-black flex items-center justify-center relative z-20">
                                             {!videoError ? (
                                                 <video controls autoPlay className="w-full h-full outline-none" src={directUrl} onError={() => setVideoError(true)}></video>
                                             ) : (
                                                 <div className="text-center p-6">
                                                     <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
                                                     <p className="text-white font-bold mb-2">Playback Failed</p>
-                                                    <a href={directUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-white text-black px-6 py-2 rounded font-bold hover:bg-gray-200 transition-colors"><Download className="w-4 h-4" /> Download</a>
+                                                    <a href={directUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-white text-black px-6 py-2 rounded font-bold hover:bg-gray-200 transition-colors"><Download className="w-4 h-4" /> Download File</a>
                                                 </div>
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="w-full h-full relative">
-                                            {iframeLoading && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
-                                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--text-main)]"></div>
-                                                </div>
-                                            )}
-                                            <iframe 
-                                                key={server}
-                                                src={getEmbedUrl()} 
-                                                className="w-full h-full" 
-                                                frameBorder="0" 
-                                                allowFullScreen 
-                                                allow="autoplay; encrypted-media; picture-in-picture" 
-                                                referrerPolicy="origin"
-                                                onLoad={() => setIframeLoading(false)}
-                                            ></iframe>
-                                        </div>
+                                        <iframe 
+                                            key={server + adBlockEnabled.toString()} // Force re-render on toggle
+                                            src={getEmbedUrl()} 
+                                            className="w-full h-full relative z-20" 
+                                            frameBorder="0" 
+                                            allowFullScreen 
+                                            allow="autoplay; encrypted-media; picture-in-picture" 
+                                            referrerPolicy="origin"
+                                            onLoad={() => setIframeLoading(false)}
+                                            sandbox={adBlockEnabled ? "allow-forms allow-scripts allow-same-origin allow-presentation allow-encrypted-media" : undefined}
+                                        ></iframe>
                                     )}
                                 </div>
-                                {server === 'direct' && !videoError && <div className="flex items-start justify-center gap-2 text-xs text-[var(--text-muted)] bg-[var(--bg-input)]/30 p-2 rounded-lg border border-[var(--border-color)]"><Info className="w-4 h-4 shrink-0 text-blue-500" /><p><span className="text-[var(--text-main)] font-bold">Tip:</span> If the video is green, try a different server or download the file.</p></div>}
                             </div>
+                            
+                            {server === 'direct' && !videoError && (
+                                <div className="mt-4 flex items-start gap-3 bg-blue-900/10 border border-blue-500/20 p-4 rounded-xl">
+                                    <Info className="w-5 h-5 shrink-0 text-blue-400" />
+                                    <p className="text-xs text-blue-300 leading-relaxed">
+                                        <span className="font-bold text-blue-200">Tip:</span> If you see a green screen or buffering, the file is likely downloading to the server. Try selecting a <span className="font-bold text-white bg-blue-500/20 px-1 rounded">⚡ CACHED</span> stream from the Downloads section for instant playback.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
 
+                    {/* DOWNLOADS / TORRENTS SECTION */}
                     {activeSection === 'downloads' && (
-                        <div ref={streamsRef} className="animate-in fade-in slide-in-from-bottom-6 duration-500">
-                             <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] overflow-hidden shadow-2xl">
-                                <div className="p-4 border-b border-[var(--border-color)] bg-[var(--bg-input)]/50 flex justify-between items-center">
-                                    <h2 className="text-lg font-bold text-[var(--text-main)] flex items-center gap-2">
-                                        <Download className="w-5 h-5 text-[rgb(var(--primary-color))]" /> Available Torrents
-                                    </h2>
-                                    <div className="flex items-center gap-2">
-                                        {loadingStreams && <span className="text-xs text-[var(--text-muted)] animate-pulse uppercase font-bold tracking-wider mr-2">Scanning...</span>}
-                                        <button onClick={() => setActiveSection('none')} className="p-1 hover:bg-[var(--bg-hover)] rounded-full"><X className="w-5 h-5 text-[var(--text-muted)]" /></button>
+                        <div ref={streamsRef} className="animate-fade-in-up bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] overflow-hidden">
+                             {/* TV Episode Selector inside Downloads */}
+                             {item.media_type === MediaType.TV && (
+                                <div className="p-4 border-b border-[var(--border-color)] bg-[var(--bg-input)]/50 flex flex-wrap gap-4 items-center">
+                                    <h3 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider">Select Episode</h3>
+                                    <div className="flex gap-2">
+                                        <div className="relative">
+                                            <select 
+                                                value={selectedSeason} 
+                                                onChange={(e) => { setSelectedSeason(Number(e.target.value)); setSelectedEpisode(1); }}
+                                                className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] pl-3 pr-8 py-1.5 rounded text-sm font-medium focus:border-[rgb(var(--primary-color))] outline-none cursor-pointer"
+                                            >
+                                                {[...Array(detail.number_of_seasons || 1)].map((_, i) => <option key={i} value={i + 1}>Season {i + 1}</option>)}
+                                            </select>
+                                            <ChevronDown className="w-3 h-3 absolute right-3 top-2.5 pointer-events-none text-[var(--text-muted)]" />
+                                        </div>
+                                        <div className="relative">
+                                            <select 
+                                                value={selectedEpisode} 
+                                                onChange={(e) => setSelectedEpisode(Number(e.target.value))}
+                                                className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] pl-3 pr-8 py-1.5 rounded text-sm font-medium focus:border-[rgb(var(--primary-color))] outline-none cursor-pointer"
+                                            >
+                                                {[...Array(getEpisodeCount(selectedSeason))].map((_, i) => <option key={i} value={i + 1}>Episode {i + 1}</option>)}
+                                            </select>
+                                            <ChevronDown className="w-3 h-3 absolute right-3 top-2.5 pointer-events-none text-[var(--text-muted)]" />
+                                        </div>
                                     </div>
                                 </div>
-                                 
-                                 {item.media_type === MediaType.TV && (
-                                    <div className="p-4 border-b border-[var(--border-color)] bg-[var(--bg-card)] flex flex-wrap gap-4 items-center">
-                                         <span className="text-xs font-bold text-[var(--text-muted)] uppercase">Select:</span>
-                                         <div className="flex items-center gap-2 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg px-3 py-1.5">
-                                             <select value={selectedSeason} onChange={(e) => { setSelectedSeason(parseInt(e.target.value)); setSelectedEpisode(1); }} className="bg-transparent text-[var(--text-main)] text-sm outline-none cursor-pointer">
-                                                    {[...Array(detail.number_of_seasons || 1)].map((_, i) => <option key={i} value={i + 1} className="bg-[var(--bg-card)]">Season {i + 1}</option>)}
-                                             </select>
-                                         </div>
-                                         
-                                         <div className="flex items-center gap-2 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg px-3 py-1.5">
-                                              <select value={selectedEpisode} onChange={(e) => setSelectedEpisode(parseInt(e.target.value))} className="bg-transparent text-[var(--text-main)] text-sm outline-none cursor-pointer">
-                                                  {[...Array(getEpisodeCount(selectedSeason))].map((_, i) => (
-                                                      <option key={i} value={i + 1} className="bg-[var(--bg-card)]">Episode {i + 1}</option>
-                                                  ))}
-                                              </select>
-                                         </div>
-                                    </div>
-                                 )}
+                             )}
 
-                                 {!loadingStreams && streams.length > 0 && (
-                                    <div className="bg-[var(--bg-input)]/30 px-4 py-2 border-b border-[var(--border-color)] flex items-center gap-4 text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">
-                                        <span className="w-20">Source</span>
-                                        <span className="flex-1">File Details</span>
-                                        <span className="w-20 text-right">Size</span>
-                                    </div>
-                                 )}
-                                 <div className="p-2 max-h-[500px] overflow-y-auto custom-scrollbar">
-                                     <StreamList streams={streams} loading={loadingStreams} onPlay={handleStreamPlay} />
-                                 </div>
-                            </div>
+                             <div className="p-4 bg-[var(--bg-input)] border-b border-[var(--border-color)] flex items-center justify-between">
+                                <h3 className="font-bold text-[var(--text-main)] flex items-center gap-2">
+                                    <Zap className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                    Available Streams
+                                </h3>
+                                {loadingStreams && <span className="text-[10px] font-bold text-[rgb(var(--primary-color))] animate-pulse">SEARCHING TRACKERS...</span>}
+                             </div>
+
+                             <div className="p-2">
+                                <StreamList streams={streams} loading={loadingStreams} onPlay={handleStreamPlay} />
+                             </div>
                         </div>
                     )}
                 </div>
-
             </div>
         </div>
         
-        {showTrailerModal && trailer && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowTrailerModal(false)}>
-                <div className="relative w-full max-w-5xl aspect-video mx-4 bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/20">
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); setShowTrailerModal(false); }}
-                        className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-red-600 text-white p-2 rounded-full transition-colors backdrop-blur-md"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
-                    <iframe 
-                        src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`} 
-                        className="w-full h-full" 
-                        frameBorder="0" 
-                        allow="autoplay; encrypted-media" 
-                        allowFullScreen
-                    ></iframe>
-                </div>
-            </div>
-        )}
-
+        {/* Collection Section */}
         {collection && collection.parts.length > 0 && (
-             <div className="mt-12 border-t border-[var(--border-color)] pt-10">
-                <div className="flex items-center gap-3 mb-6">
+             <div className="mt-8 border-t border-[var(--border-color)] pt-12">
+                <div className="flex items-center gap-3 mb-8">
                     <Layers className="w-6 h-6 text-[rgb(var(--primary-color))]" />
                     <div>
-                        <h2 className="text-xl font-bold text-[var(--text-main)]">{collection.name}</h2>
-                        <p className="text-xs text-[var(--text-muted)]">Part of a franchise</p>
+                        <h2 className="text-2xl font-bold text-[var(--text-main)]">{collection.name}</h2>
+                        <p className="text-sm text-[var(--text-muted)]">Watch the full franchise</p>
                     </div>
                 </div>
-                <div className="flex overflow-x-auto space-x-4 pb-4 custom-scrollbar">
+                <div className="flex overflow-x-auto space-x-6 pb-6 custom-scrollbar snap-x">
                     {collection.parts.map(part => (
-                        <MediaCard 
-                            key={part.id} 
-                            item={{...part, media_type: MediaType.MOVIE}} 
-                            onClick={handleRecClick} 
-                        />
+                        <div key={part.id} className="snap-start">
+                             <MediaCard 
+                                item={{...part, media_type: MediaType.MOVIE}} 
+                                onClick={handleRecClick} 
+                            />
+                        </div>
                     ))}
                 </div>
              </div>
         )}
 
+        {/* Recommendations Section */}
         {recommendations.length > 0 && (
-           <div className="mt-12 border-t border-[var(--border-color)] pt-10">
-               <h2 className="text-xl font-bold text-[var(--text-main)] mb-6 flex items-center gap-2"><Sparkles className="w-5 h-5 text-[rgb(var(--primary-color))]" /> You Might Also Like</h2>
-               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">{recommendations.map(rec => <MediaCard key={rec.id} item={rec} onClick={handleRecClick} />)}</div>
+           <div className="mt-8 border-t border-[var(--border-color)] pt-12">
+               <h2 className="text-2xl font-bold text-[var(--text-main)] mb-8 flex items-center gap-2">
+                   <Sparkles className="w-6 h-6 text-[rgb(var(--primary-color))]" /> You Might Also Like
+               </h2>
+               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                   {recommendations.map(rec => (
+                       <MediaCard key={rec.id} item={rec} onClick={handleRecClick} />
+                   ))}
+               </div>
            </div>
         )}
       </div>
       
-      <div className="relative z-10 w-full">
-        <Footer onNavigate={onNavigate} />
+      {/* Footer rendered internally to ensure proper spacing */}
+      <div className="mt-auto">
+         <Footer onNavigate={onNavigate} />
       </div>
     </div>
   );
