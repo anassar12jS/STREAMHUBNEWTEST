@@ -30,8 +30,29 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [themeColor, setThemeColor] = useState('147, 51, 234'); // Default Purple
   
+  // PWA Install State
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  
   // Initialize mode directly from storage to avoid flash
   const [mode, setMode] = useState<'dark' | 'light'>(getMode());
+
+  // Capture install prompt
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    });
+  }, []);
+
+  const handleInstallClick = () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult: any) => {
+          if (choiceResult.outcome === 'accepted') {
+              setInstallPrompt(null);
+          }
+      });
+  };
 
   // Sync Mode to DOM (HTML Tag)
   useEffect(() => {
@@ -188,6 +209,8 @@ const App: React.FC = () => {
             onOpenSettings={() => setIsSettingsOpen(true)} 
             currentMode={mode}
             onToggleMode={toggleMode}
+            installPrompt={installPrompt}
+            onInstall={handleInstallClick}
         />
       )}
       
@@ -204,31 +227,36 @@ const App: React.FC = () => {
         {view === 'privacy' && <Privacy />}
         {view === 'terms' && <Terms />}
         
+        {view === 'search' && (
+           <div className="max-w-7xl mx-auto px-4 py-8">
+               <h2 className="text-2xl font-bold mb-6">Search Results for "{searchQuery}"</h2>
+               {searchResults.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    {searchResults.map(item => (
+                        <MediaCard key={item.id} item={item} onClick={handleSelect} />
+                    ))}
+                  </div>
+               ) : (
+                  <p className="text-[var(--text-muted)]">No results found.</p>
+               )}
+           </div>
+        )}
+        
         {/* Pass handleNavigate to Details so it can render the Footer internally */}
         {view === 'details' && selectedItem && (
-          <Details item={selectedItem} onBack={handleBack} onPersonClick={handlePersonSelect} onNavigate={handleNavigate} />
-        )}
-
-        {view === 'search' && (
-          <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
-             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-[var(--text-main)]">Results for "<span className="text-[rgb(var(--primary-color))]">{searchQuery}</span>"</h2>
-                <button onClick={() => handleNavigate('home')} className="text-sm text-[var(--text-muted)] hover:text-[var(--text-main)]">Clear</button>
-             </div>
-            {searchResults.length === 0 ? (
-              <div className="text-center text-[var(--text-muted)] mt-20">No results found.</div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {searchResults.map(item => <MediaCard key={item.id} item={item} onClick={handleSelect} />)}
-              </div>
-            )}
-          </div>
+             <Details 
+                item={selectedItem} 
+                onBack={handleBack} 
+                onPersonClick={handlePersonSelect}
+                onNavigate={handleNavigate}
+             />
         )}
       </main>
 
-      {/* Hide global footer on details view (rendered internal) and sports player */}
-      {view !== 'details' && view !== 'play-sports' && <Footer onNavigate={handleNavigate} />}
-      
+      {!isFullScreenPlayer && view !== 'details' && (
+          <Footer onNavigate={handleNavigate} />
+      )}
+
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );

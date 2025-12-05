@@ -8,7 +8,7 @@ import { TMDB_IMAGE_BASE, TMDB_POSTER_BASE } from '../constants';
 import { StreamList } from '../components/StreamList';
 import { MediaCard } from '../components/MediaCard';
 import { Footer } from '../components/Footer';
-import { ArrowLeft, Star, Youtube, PlayCircle, Tv, Film, X, Server, AlertCircle, Download, Info, Plus, Check, Sparkles, Captions, ChevronUp, ChevronDown, Layers, Zap, Play, Share2 } from 'lucide-react';
+import { ArrowLeft, Star, Youtube, PlayCircle, Tv, Film, X, Server, AlertCircle, Download, Info, Plus, Check, Sparkles, Captions, ChevronUp, ChevronDown, Layers, Zap, Play, Share2, Lightbulb } from 'lucide-react';
 
 interface DetailsProps {
   item: TMDBResult;
@@ -38,6 +38,9 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
   const [directUrl, setDirectUrl] = useState<string>('');
   const [videoError, setVideoError] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
+  
+  // Cinema Mode State
+  const [cinemaMode, setCinemaMode] = useState(false);
   
   const playerRef = useRef<HTMLDivElement>(null);
   const streamsRef = useRef<HTMLDivElement>(null);
@@ -253,7 +256,17 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans transition-colors duration-300 flex flex-col relative">
+      
+      {/* Cinema Mode Overlay */}
+      {cinemaMode && (
+        <div 
+            className="fixed inset-0 z-40 bg-black animate-in fade-in duration-700 cursor-pointer"
+            onClick={() => setCinemaMode(false)}
+            title="Click to exit Lights Off mode"
+        ></div>
+      )}
+
       <div className="fixed inset-0 z-0">
         {backdropUrl && (
             <>
@@ -393,7 +406,7 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
                      </div>
                 </div>
 
-                <div ref={sectionContainerRef} className="scroll-mt-32 min-h-[50px]">
+                <div ref={sectionContainerRef} className={`scroll-mt-32 min-h-[50px] relative transition-all duration-500 ${cinemaMode ? 'z-50' : ''}`}>
                     {activeSection === 'none' && (
                         <div className="text-center py-10 opacity-50 border-2 border-dashed border-[var(--border-color)] rounded-2xl">
                             <Film className="w-12 h-12 mx-auto mb-2 text-[var(--text-muted)]" />
@@ -403,6 +416,21 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
 
                     {activeSection === 'player' && (
                         <div ref={playerRef} className="animate-in fade-in slide-in-from-bottom-6 duration-500">
+                            {/* Cinema Mode Toggle */}
+                            <div className="flex justify-end mb-2">
+                                <button 
+                                    onClick={() => setCinemaMode(!cinemaMode)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                                        cinemaMode 
+                                            ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/50' 
+                                            : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-color)]'
+                                    }`}
+                                >
+                                    <Lightbulb className={`w-3.5 h-3.5 ${cinemaMode ? 'fill-current' : ''}`} />
+                                    {cinemaMode ? 'Lights On' : 'Lights Off'}
+                                </button>
+                            </div>
+
                             <div className="flex flex-col gap-4 bg-[var(--bg-card)] p-2 sm:p-4 rounded-2xl border border-[var(--border-color)] shadow-2xl">
                                 {server !== 'direct' && (
                                     <div className="flex items-center gap-3 mb-2 overflow-x-auto pb-2 custom-scrollbar">
@@ -467,7 +495,7 @@ export const Details: React.FC<DetailsProps> = ({ item, onBack, onPersonClick, o
                                                 <Captions className="w-4 h-4" /> Subtitles
                                             </button>
                                         </div>
-                                        <button onClick={() => { setActiveSection('none'); setDirectUrl(''); }} className="pointer-events-auto bg-black/60 hover:bg-red-600 text-white p-2 rounded-full transition-colors backdrop-blur-md border border-white/10"><X className="w-4 h-4" /></button>
+                                        <button onClick={() => { setActiveSection('none'); setDirectUrl(''); setCinemaMode(false); }} className="pointer-events-auto bg-black/60 hover:bg-red-600 text-white p-2 rounded-full transition-colors backdrop-blur-md border border-white/10"><X className="w-4 h-4" /></button>
                                     </div>
                                     
                                     {server === 'direct' ? (

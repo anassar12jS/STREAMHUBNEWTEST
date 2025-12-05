@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Film, Menu, X, Settings, Bookmark, Trophy, Compass, Sun, Moon, Ghost, Tv2 } from 'lucide-react';
+import { Search, Film, Menu, X, Settings, Compass, Sun, Moon, Ghost, Tv2, Download, Trophy, Bookmark } from 'lucide-react';
 
 interface NavbarProps {
   onSearch: (query: string) => void;
@@ -8,9 +8,19 @@ interface NavbarProps {
   onOpenSettings: () => void;
   currentMode: 'light' | 'dark';
   onToggleMode: () => void;
+  installPrompt?: any;
+  onInstall?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, onOpenSettings, currentMode, onToggleMode }) => {
+export const Navbar: React.FC<NavbarProps> = ({ 
+    onSearch, 
+    onNavigate, 
+    onOpenSettings, 
+    currentMode, 
+    onToggleMode,
+    installPrompt,
+    onInstall
+}) => {
   const [query, setQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -71,6 +81,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, onOpenSett
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+             {/* Install Button (PWA) */}
+             {installPrompt && onInstall && (
+                 <button 
+                    onClick={onInstall}
+                    className="hidden md:flex items-center gap-2 bg-[rgb(var(--primary-color))]/10 text-[rgb(var(--primary-color))] px-3 py-1.5 rounded-full text-xs font-bold border border-[rgb(var(--primary-color))]/20 hover:bg-[rgb(var(--primary-color))]/20 transition-all animate-pulse"
+                 >
+                    <Download className="w-4 h-4" /> Install App
+                 </button>
+             )}
+
              <button 
                 onClick={onToggleMode}
                 className="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors relative overflow-hidden"
@@ -84,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, onOpenSett
              <button 
                onClick={onOpenSettings}
                className="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
-               title="Addon Settings"
+               title="Settings"
              >
                <Settings className="w-5 h-5" />
              </button>
@@ -122,6 +142,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, onOpenSett
               <button onClick={() => { onNavigate('livetv'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-[var(--bg-hover)] text-green-500">Live TV</button>
               <button onClick={() => { onNavigate('library'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-[var(--bg-hover)]">My Library</button>
               <button onClick={() => { onNavigate('sports'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-[var(--bg-hover)] text-yellow-500">Live Sports</button>
+              {installPrompt && onInstall && (
+                 <button onClick={() => { onInstall(); setIsMobileMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-base font-bold text-[rgb(var(--primary-color))] hover:bg-[var(--bg-hover)] flex items-center gap-2">
+                     <Download className="w-5 h-5" /> Install App
+                 </button>
+              )}
             </div>
         </div>
       )}
